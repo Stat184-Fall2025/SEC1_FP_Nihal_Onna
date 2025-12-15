@@ -32,3 +32,5 @@ README explains the main process of our work while the rest of the files contain
 ## Authors
 
 Nihal and Ona
+To contact Ona, send an email to ononbaasansuren@gmail.com
+To contact Nihal, send an email to nihalmothkuri@gmail.com
