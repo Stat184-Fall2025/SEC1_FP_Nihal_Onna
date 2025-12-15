@@ -1,5 +1,5 @@
 # Project Title
-"Elite" College Admissions
+The link between "Elite" College Admissions and Household incomes.
 
 
 ## Overview
