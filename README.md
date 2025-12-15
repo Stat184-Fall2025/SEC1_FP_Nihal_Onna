@@ -31,4 +31,4 @@ README explains the main process of our work while the rest of the files contain
 
 ## Authors
 
-Give information about who are the authors of the project and how people can get in touch if they have questions.
+Nihal and Ona
