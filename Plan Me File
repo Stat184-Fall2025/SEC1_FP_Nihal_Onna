@@ -1,0 +1,19 @@
+#Plan for Course Project
+This section explains my plan for completing the project using both the Elite College Admissions dataset and the 2025 SAT Suite Annual Report.
+For this project, my plan was to analyze the relationship between household income, SAT performance, and elite college admissions.
+I first reviewed the Elite College Admissions dataset from the CMU Statistics & Data Science Data Repository.
+I then reviewed the 2025 Total Group SAT Suite of Assessments Annual Report to understand national SAT trends.
+I identified key variables related to household income and elite college admission status in the CMU dataset.
+I identified SAT score and income-related tables in the SAT Suite report.
+I imported the Elite College Admissions dataset into R for analysis.
+I extracted and imported relevant SAT summary tables into R.
+I cleaned and organized both datasets to ensure consistent variable names and formats.
+I summarized household income distributions and elite college admission rates.
+I summarized national SAT participation and average scores by income group.
+I compared patterns in SAT performance with elite college admission outcomes.
+I created simple charts to show relationships between income, SAT scores, and elite admissions.
+I wrote short explanations describing what each result showed.
+I kept most of the code in a separate section so the main report focused on results.
+I rendered the Quarto document to make sure the analysis worked correctly.
+This section explains my plan for creating and maintaining the GitHub repository.
+I created a public repository and used branches, commits, and a pull request to keep the work organized.
