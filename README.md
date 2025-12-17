@@ -1,28 +1,36 @@
 # Project Title
+The link between "Elite" College Admissions and Household incomes.
 
-Write a 1-2 sentences that quickly and clearly convey what your repo is for.
 
 ## Overview
 
-Expand on those introductory sentences with a brief but informative description of your project's purpose and goals. This section should help visitors decide whether they should dig deeper into your repo/project.
+Exploring college data and seeing if there is a link between high income households and "elite" college admissions.
 
-### Interesting Insight (Optional)
-
-This is optional but highly recommended. You'll include one interesting insight from your project as part of the README. This insight is most effective when you include a visual. Keep in mind that this visual must be included as an image file (e.g., JPG, PNG, etc.). You can export plots created with `{ggplot2}` by using the function `ggsave`.
 
 ## Data Sources and Acknowledgements
 
-Be sure to list where you got any data used within the project. Be sure to acknowledge any one whose work or elements you're drawing upon.
+data url: https://cmustatistics.github.io/data-repository/social/elite-college-admissions.html
+Maintained by the Department of Statistics & Data Science, Carnegie Mellon University
+CMU S&DS Data Repository 
 
 ## Current Plan
 
-Provide some information about what you intend to doe with the project. You can additionally refer the visitor to your detailed plan document.
+1.) Create the initial repository, including the plan and readme document
+
+2.) Create the Quarto document we can work on and change in the repository
+
+3.) Using commits and R, analyze the student or any other data we have to display whether there are links between high income households and elite college admissions
+
+4.) Once all issues are resolved pull back into the main branch
+
 
 ## Repo Structure
 
-Use this section to explain the structure of your repo. This should help visitors quickly figure out where they should look to find certain elements. Further, you can use this space to highlight and briefly explain important/key files in the repo.
+README explains the main process of our work while the rest of the files contain additional data related to our groupwork.
 
 
 ## Authors
 
-Give information about who are the authors of the project and how people can get in touch if they have questions.
+Nihal and Ona
+To contact Ona, send an email to ononbaasansuren@gmail.com
+To contact Nihal, send an email to nihalmothkuri@gmail.com

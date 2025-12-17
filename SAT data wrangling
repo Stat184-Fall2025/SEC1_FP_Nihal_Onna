@@ -1,0 +1,64 @@
+## SAT Income Table Wrangling
+
+## 1. Enter the table as a regular data.frame 
+
+income_scores <- data.frame(
+  income_quintile   = c("Lowest Quintile",
+                        "2nd Lowest Quintile",
+                        "Middle Quintile",
+                        "2nd Highest Quintile",
+                        "Highest Quintile",
+                        "Unknown"),
+  income_range      = c("$0 - $59,669",
+                        "$59,670 - $76,797",
+                        "$76,798 - $95,223",
+                        "$95,224 - $124,913",
+                        ">= $124,914",
+                        "Unknown"),
+  n_test_takers     = c(173521, 196975, 233173, 319127, 494083, 588086),
+  pct_test_takers   = c(9, 10, 12, 16, 25, 29) / 100,   # convert % to proportions
+  mean_total        = c(897, 951, 994, 1049, 1161, 985),
+  mean_erw          = c(460, 488, 510, 536, 589, 490),
+  mean_math         = c(438, 463, 485, 513, 572, 495),
+  pct_bench_both    = c(16, 24, 31, 42, 63, 33) / 100,
+  pct_bench_erw     = c(42, 54, 62, 72, 86, 52) / 100,
+  pct_bench_math    = c(17, 25, 33, 43, 64, 37) / 100,
+  pct_bench_none    = c(56, 45, 37, 27, 13, 44) / 100,
+  stringsAsFactors  = FALSE
+)
+
+## 2. Long version for mean scores (one row per income x score_type)
+
+mean_cols <- income_scores[, c("mean_total", "mean_erw", "mean_math")]
+
+mean_scores_long <- data.frame(
+  income_quintile = rep(income_scores$income_quintile, times = 3),
+  income_range    = rep(income_scores$income_range,    times = 3),
+  score_type      = rep(c("Total", "ERW", "Math"),
+                        each = nrow(income_scores)),
+  mean_score      = c(mean_cols$mean_total,
+                      mean_cols$mean_erw,
+                      mean_cols$mean_math),
+  stringsAsFactors = FALSE
+)
+
+## 3. Long version for benchmark percentages (one row per income x benchmark_type)
+
+bench_cols <- income_scores[, c("pct_bench_both",
+                                "pct_bench_erw",
+                                "pct_bench_math",
+                                "pct_bench_none")]
+
+benchmarks_long <- data.frame(
+  income_quintile = rep(income_scores$income_quintile, times = 4),
+  income_range    = rep(income_scores$income_range,    times = 4),
+  benchmark_type  = rep(c("Both", "ERW", "Math", "None"),
+                        each = nrow(income_scores)),
+  pct_met         = c(bench_cols$pct_bench_both,
+                      bench_cols$pct_bench_erw,
+                      bench_cols$pct_bench_math,
+                      bench_cols$pct_bench_none),
+  stringsAsFactors = FALSE
+)
+
+
