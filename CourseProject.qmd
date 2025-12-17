@@ -1,0 +1,425 @@
+---
+title: "Link between Elite College Admission and high household income"
+author: "Nihal Mothkuri and Onon Baasansuren"
+date: 12/5/25
+format:
+  pdf:
+    toc: false
+    geometry: margin=1in
+execute:
+  echo: false
+  warning: false
+  message: false
+lang: en
+fig-cap-location: top
+tbl-cap-location: top
+---
+
+## Introduction paragraph 
+
+In this project, I focus on how family income is related to who gets into elite colleges. Using a college admissions dataset with detailed parent income bins and college “tier” labels, I look at how the probability of attending an elite college changes as household income goes up. The SAT data I include is more of a supporting piece: it shows that higher-income students also tend to have higher test scores, which can help explain why they show up more often at elite schools. Overall, my goal is to use graphs and a hypothesis test to see whether students from high-income households are clearly more likely to attend elite colleges than students from lower-income households.
+
+```{r}
+#| fig-alt: "Line chart with two lines comparing mean college attendance probability for elite and non-elite colleges across parent income percentile bins. Both lines slope upward with income, and the elite line rises more sharply at the highest income bins, showing that students from the richest households attend elite colleges at higher rates."
+# Load packages
+library(dplyr)
+library(ggplot2)
+
+# 1. Read the data from your local path
+CollegeAdmissions_Data <- read.csv(
+  "C:/Users/nihal/Downloads/CollegeAdmissions_Data.csv.gz"
+)
+
+# 2. Define which tiers count as "elite" and order the income bins
+elite_names <- c(
+  "Ivy Plus",
+  "Highly selective private",
+  "Highly selective public",
+  "Other elite schools (public and private)"
+)
+
+admissions_summary <- CollegeAdmissions_Data %>%
+  mutate(
+    elite_flag = if_else(tier_name %in% elite_names, "Elite", "Non-elite"),
+    par_income_lab = factor(
+      par_income_lab,
+      levels = c(
+        "0-20", "20-40", "40-60", "60-70", "70-80", "80-90",
+        "90-95", "95-96", "96-97", "97-98", "98-99",
+        "99-99.9", "Top 0.1", "Top 1"
+      ),
+      ordered = TRUE
+    )
+  ) %>%
+  group_by(elite_flag, par_income_lab) %>%
+  summarise(
+    mean_attend = mean(attend, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 3. Plot: attendance vs. income bin, elite vs non-elite
+ggplot(
+  admissions_summary,
+  aes(
+    x = par_income_lab,
+    y = mean_attend,
+    group = elite_flag,
+    colour = elite_flag
+  )
+) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "Parent income percentile bin",
+    y = "Mean probability of attending this tier",
+    colour = "College type",
+    title = "Elite vs non-elite college attendance by parent income",
+    subtitle = "Higher-income households have a higher probability of attending elite colleges"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+## Hypothesis test for correlation
+
+Here I test whether there is a statistically significant (positive) correlation between parent income and the chance of attending an **elite** college.
+
+-   **Null hypothesis (H₀):** ρ = 0 (no linear correlation between income bin and elite attendance).
+
+-   **Alternative hypothesis (H₁):** ρ \> 0 (higher income bins are associated with higher elite attendance).
+
+```{r}
+#| label: test-correlation-elite
+#| message: false
+#| warning: false
+#| fig-alt: "Text output from a Pearson correlation test between parent income bin and elite college attendance. The estimated correlation is positive and the p-value is effectively zero, so we reject the null hypothesis of no correlation and conclude that higher parent income is significantly associated with a higher probability of attending an elite college."
+
+# Load packages
+library(dplyr)
+library(ggplot2)
+
+# 1. Read the data from your local path
+CollegeAdmissions_Data <- read.csv(
+  "C:/Users/nihal/Downloads/CollegeAdmissions_Data.csv.gz"
+)
+
+# 2. Define "elite" tiers and income bin order
+elite_names <- c(
+  "Ivy Plus",
+  "Highly selective private",
+  "Highly selective public",
+  "Other elite schools (public and private)"
+)
+
+income_levels <- c(
+  "0-20", "20-40", "40-60", "60-70", "70-80", "80-90",
+  "90-95", "95-96", "96-97", "97-98", "98-99",
+  "99-99.9", "Top 1", "Top 0.1"
+)
+
+
+# 3. Hypothesis test: correlation between income and elite attendance
+#    H0: rho = 0  (no linear correlation)
+#    H1: rho > 0  (higher income -> higher probability of elite attendance)
+
+elite_data <- CollegeAdmissions_Data %>%
+  mutate(
+    elite_flag = if_else(tier_name %in% elite_names, "Elite", "Non-elite"),
+    income_order = as.numeric(
+      factor(par_income_lab, levels = income_levels, ordered = TRUE)
+    )
+  ) %>%
+  filter(elite_flag == "Elite")
+
+# Pearson correlation test (one-sided: greater)
+cor_test_elite <- cor.test(
+  ~ income_order + attend,
+  data = elite_data,
+  method = "pearson",
+  alternative = "greater"
+)
+
+print(cor_test_elite)
+
+cat("\nEstimated correlation (rho):",
+    round(cor_test_elite$estimate, 3), "\n")
+cat("p-value:", signif(cor_test_elite$p.value, 3), "\n")
+```
+## Data wrangling 
+
+To see if there another link we used an SAT dataset involving scores and medion family income. Here is how we wrangled the data. 
+```{r}
+## SAT Income Table Wrangling -------------------------------------------
+
+## 1. Enter the table as a regular data.frame (wide format)
+
+income_scores <- data.frame(
+  income_quintile   = c("Lowest Quintile",
+                        "2nd Lowest Quintile",
+                        "Middle Quintile",
+                        "2nd Highest Quintile",
+                        "Highest Quintile",
+                        "Unknown"),
+  income_range      = c("$0 - $59,669",
+                        "$59,670 - $76,797",
+                        "$76,798 - $95,223",
+                        "$95,224 - $124,913",
+                        ">= $124,914",
+                        "Unknown"),
+  n_test_takers     = c(173521, 196975, 233173, 319127, 494083, 588086),
+  pct_test_takers   = c(9, 10, 12, 16, 25, 29) / 100,   # convert % to proportions
+  mean_total        = c(897, 951, 994, 1049, 1161, 985),
+  mean_erw          = c(460, 488, 510, 536, 589, 490),
+  mean_math         = c(438, 463, 485, 513, 572, 495),
+  pct_bench_both    = c(16, 24, 31, 42, 63, 33) / 100,
+  pct_bench_erw     = c(42, 54, 62, 72, 86, 52) / 100,
+  pct_bench_math    = c(17, 25, 33, 43, 64, 37) / 100,
+  pct_bench_none    = c(56, 45, 37, 27, 13, 44) / 100,
+  stringsAsFactors  = FALSE
+)
+
+## 2. Long version for mean scores (one row per income x score_type)
+
+mean_cols <- income_scores[, c("mean_total", "mean_erw", "mean_math")]
+
+mean_scores_long <- data.frame(
+  income_quintile = rep(income_scores$income_quintile, times = 3),
+  income_range    = rep(income_scores$income_range,    times = 3),
+  score_type      = rep(c("Total", "ERW", "Math"),
+                        each = nrow(income_scores)),
+  mean_score      = c(mean_cols$mean_total,
+                      mean_cols$mean_erw,
+                      mean_cols$mean_math),
+  stringsAsFactors = FALSE
+)
+
+## 3. Long version for benchmark percentages (one row per income x benchmark_type)
+
+bench_cols <- income_scores[, c("pct_bench_both",
+                                "pct_bench_erw",
+                                "pct_bench_math",
+                                "pct_bench_none")]
+
+benchmarks_long <- data.frame(
+  income_quintile = rep(income_scores$income_quintile, times = 4),
+  income_range    = rep(income_scores$income_range,    times = 4),
+  benchmark_type  = rep(c("Both", "ERW", "Math", "None"),
+                        each = nrow(income_scores)),
+  pct_met         = c(bench_cols$pct_bench_both,
+                      bench_cols$pct_bench_erw,
+                      bench_cols$pct_bench_math,
+                      bench_cols$pct_bench_none),
+  stringsAsFactors = FALSE
+)
+
+
+
+print(income_scores)
+print(mean_scores_long)
+print(benchmarks_long)
+
+```
+
+## SAT Scores vs Median household income plot
+
+After looking at elite college attendance, we also want to see whether test performance itself is related to family income. This SAT table shows that students from higher-income quintiles have higher mean SAT scores and are more likely to meet both ERW and Math benchmarks, which helps explain why they’re overrepresented at elite colleges.
+
+```{r}
+#| fig-alt: “Line graph of mean SAT scores by family income quintile. The line rises steadily from the lowest to the highest income group, showing that students from higher-income households have higher average SAT scores.”
+## SAT Income vs Score Plot (no tidyverse except ggplot2) ----------------
+
+library(ggplot2)
+
+## 1. Enter the table (wide format)
+
+income_scores <- data.frame(
+  income_quintile   = c("Lowest Quintile",
+                        "2nd Lowest Quintile",
+                        "Middle Quintile",
+                        "2nd Highest Quintile",
+                        "Highest Quintile",
+                        "Unknown"),
+  income_range      = c("$0 - $59,669",
+                        "$59,670 - $76,797",
+                        "$76,798 - $95,223",
+                        "$95,224 - $124,913",
+                        ">= $124,914",
+                        "Unknown"),
+  n_test_takers     = c(173521, 196975, 233173, 319127, 494083, 588086),
+  pct_test_takers   = c(9, 10, 12, 16, 25, 29) / 100,
+  mean_total        = c(897, 951, 994, 1049, 1161, 985),
+  mean_erw          = c(460, 488, 510, 536, 589, 490),
+  mean_math         = c(438, 463, 485, 513, 572, 495),
+  pct_bench_both    = c(16, 24, 31, 42, 63, 33) / 100,
+  pct_bench_erw     = c(42, 54, 62, 72, 86, 52) / 100,
+  pct_bench_math    = c(17, 25, 33, 43, 64, 37) / 100,
+  pct_bench_none    = c(56, 45, 37, 27, 13, 44) / 100,
+  stringsAsFactors  = FALSE
+)
+
+## 2. Treat income_quintile as an ordered factor (drop "Unknown" for plots)
+
+income_scores$income_quintile <- factor(
+  income_scores$income_quintile,
+  levels = c("Lowest Quintile",
+             "2nd Lowest Quintile",
+             "Middle Quintile",
+             "2nd Highest Quintile",
+             "Highest Quintile",
+             "Unknown"),
+  ordered = TRUE
+)
+
+plot_data <- subset(income_scores, income_quintile != "Unknown")
+
+## 3A. Simple plot: total SAT score vs income quintile -------------------
+
+ggplot(plot_data,
+       aes(x = income_quintile, y = mean_total, group = 1)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "Median family income (quintile)",
+    y = "Mean total SAT score",
+    title = "Mean SAT total score by family income",
+    subtitle = "Higher income quintiles have higher average SAT scores"
+  ) +
+  theme_minimal()
+
+## 3B. Optional: ERW vs Math lines on the same plot ----------------------
+
+# Build a small long-format data frame by hand
+mean_scores_long <- data.frame(
+  income_quintile = rep(plot_data$income_quintile, times = 2),
+  score_type      = rep(c("ERW", "Math"), each = nrow(plot_data)),
+  mean_score      = c(plot_data$mean_erw, plot_data$mean_math)
+)
+
+ggplot(mean_scores_long,
+       aes(x = income_quintile, y = mean_score,
+           group = score_type, colour = score_type)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "Median family income (quintile)",
+    y = "Mean section SAT score",
+    colour = "Section",
+    title = "SAT ERW and Math scores by family income",
+    subtitle = "Scores rise as median family income increases"
+  ) +
+  theme_minimal()
+
+```
+
+## Additional Graphs supporting the link between household income and Elite college admission
+
+These three graphs give more evidence that wealth and elite college access are tightly connected. The stacked bar chart shows that elite colleges enroll a much larger share of students from the very highest income bins than non-elite colleges. The heatmap shows that, within tiers, attendance probabilities are highest for rich students at the most selective tiers. Finally, the high-income–share vs test-score-band graph connects this back to performance: colleges with stronger test-score profiles have a bigger share of high-income students, reinforcing the idea that family income, test scores, and elite admissions are all linked.
+
+```{r}
+#| fig-alt: “Stacked bar chart comparing the income composition of students at elite and non-elite colleges. The elite bar has a much larger share of students from the highest income bins and a smaller share from the lowest bins than the non-elite bar, showing that elite colleges enroll disproportionately more high-income students.”
+## SAT Income vs Score Plot (no tidyverse except ggplot2) ----------------
+library(dplyr)
+library(ggplot2)
+
+elite_names <- c(
+  "Ivy Plus",
+  "Highly selective private",
+  "Highly selective public",
+  "Other elite schools (public and private)"
+)
+
+income_levels <- c(
+  "0-20","20-40","40-60","60-70","70-80","80-90",
+  "90-95","95-96","96-97","97-98","98-99",
+  "99-99.9","Top 0.1","Top 1"
+)
+
+comp_data <- CollegeAdmissions_Data %>%
+  mutate(
+    elite_flag = if_else(tier_name %in% elite_names, "Elite", "Non-elite"),
+    par_income_lab = factor(par_income_lab,
+                            levels = income_levels,
+                            ordered = TRUE)
+  ) %>%
+  group_by(elite_flag, par_income_lab) %>%
+  summarise(total_attend = sum(attend, na.rm = TRUE), .groups = "drop") %>%
+  group_by(elite_flag) %>%
+  mutate(share = total_attend / sum(total_attend)) %>%
+  ungroup()
+
+ggplot(comp_data,
+       aes(x = elite_flag, y = share, fill = par_income_lab)) +
+  geom_col() +
+  labs(
+    x = "College type",
+    y = "Share of student body",
+    fill = "Parent income bin",
+    title = "Income composition of elite vs non-elite colleges"
+  ) +
+  theme_minimal()
+
+
+```
+
+```{r}
+high_bins   <- c("98-99", "99-99.9", "Top 0.1", "Top 1")
+middle_bins <- c("60-70","70-80","80-90","90-95")
+low_bins    <- c("0-20","20-40","40-60")
+
+comp_table <- CollegeAdmissions_Data %>%
+  mutate(
+    elite_flag = if_else(tier_name %in% elite_names, "Elite", "Non-elite"),
+    bin_group = case_when(
+      par_income_lab %in% low_bins    ~ "Low",
+      par_income_lab %in% middle_bins ~ "Middle",
+      par_income_lab %in% high_bins   ~ "High",
+      TRUE                            ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(bin_group)) %>%
+  group_by(elite_flag, bin_group) %>%
+  summarise(total_attend = sum(attend, na.rm = TRUE), .groups = "drop") %>%
+  group_by(elite_flag) %>%
+  mutate(share = total_attend / sum(total_attend)) %>%
+  select(elite_flag, bin_group, share)
+
+comp_table
+
+
+```
+
+```{r}
+#| fig-alt: “Line graph showing the share of students from top income bins across test score bands. The line slopes upward so that colleges in higher test-score bands have a larger share of high-income students, suggesting that more selective, high-score colleges are more heavily composed of students from wealthy families.”
+
+high_income_bins <- c("99-99.9", "Top 0.1", "Top 1")
+
+hi_income_by_band <- CollegeAdmissions_Data %>%
+  mutate(
+    high_income = par_income_lab %in% high_income_bins
+  ) %>%
+  group_by(test_band_tier) %>%
+  summarise(
+    hi_attend    = sum(attend[high_income], na.rm = TRUE),
+    total_attend = sum(attend, na.rm = TRUE),
+    hi_share     = hi_attend / total_attend,
+    .groups = "drop"
+  )
+
+ggplot(hi_income_by_band,
+       aes(x = test_band_tier, y = hi_share, group = 1)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "Test score band (college selectivity)",
+    y = "Share of students from top income bins",
+    title = "High-income students are concentrated at higher test-score bands"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+```
+
+##Conclusion 
+Overall, my results show a clear and consistent link between higher household income and elite college attendance. The line graph and hypothesis test both point in the same direction: as parent income increases, the probability of attending an elite college rises, and this positive correlation is statistically significant, not just random noise. The composition table also shows that elite colleges are made up of a much larger share of students from the highest income bins and a smaller share from the lowest bins compared to non-elite schools. The SAT data is only supplementary, but it supports this pattern by showing that higher-income students tend to have higher test scores, which likely helps them access these selective institutions. Taken together, the evidence suggests that elite college admissions are strongly tilted toward students from wealthier families.
