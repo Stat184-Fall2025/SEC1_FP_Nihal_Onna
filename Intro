@@ -1,0 +1,4 @@
+In this project, I focus on how family income is related to who gets into elite colleges. 
+Using a college admissions dataset with detailed parent income bins and college “tier” labels, I look at how the probability of attending an elite college changes as household income goes up. 
+The SAT data I include is more of a supporting piece: it shows that higher-income students also tend to have higher test scores, which can help explain why they show up more often at elite schools.
+Overall, my goal is to use graphs and a hypothesis test to see whether students from high-income households are clearly more likely to attend elite colleges than students from lower-income households.
